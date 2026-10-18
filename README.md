@@ -21,6 +21,8 @@ MVP 구현 완료(STEP 11), 전체 시험 진행(STEP 12).
 - DATA-MODEL.md: IndexedDB 저장 구조와 필드 규칙
 - API-SPEC.md: FastAPI 엔드포인트 계약
 - TEST-PLAN.md: 시험 시나리오와 기대 결과
+- docs/README-final-status.md: 완성 시점 README 초안 (현재 상태·실행·배포 중심)
+- docs/README-technical.md: 완성 시점 README 초안 (기술 구조·동작 흐름·API·데이터 중심)
 - frontend/: 화면 (Next.js · React · TypeScript · Tailwind CSS)
 - backend/: AI 태깅·추천·날씨 API 서버 (FastAPI)
 

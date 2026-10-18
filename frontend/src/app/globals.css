@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #f8f7f4;
+  --color-ink: #30312e;
+  --color-muted: #75766f;
+  --color-line: #e7e6df;
+  --color-moss: #58644a;
+  --color-moss-soft: #e6e9dc;
+  --color-lilac: #eae8ed;
+  --color-danger: #a4473d;
+  --font-sans: var(--font-noto), "Noto Sans KR", system-ui, sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid #909d78;
+  outline-offset: 3px;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.svg-fill > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.checker {
+  background-color: #fff;
+  background-image: linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-line);
+  background: #fff;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+@utility btn-primary {
+  border-color: var(--color-moss);
+  background: var(--color-moss);
+  color: #fff;
+}
+
+@utility chip {
+  border-radius: 9999px;
+  border: 1px solid var(--color-line);
+  background: #fff;
+  padding: 0.375rem 0.875rem;
+  font-size: 13px;
+  color: var(--color-muted);
+  &[aria-pressed="true"] {
+    border-color: var(--color-moss);
+    background: var(--color-moss);
+    color: #fff;
+  }
+}
+
+@utility card {
+  border-radius: 1rem;
+  border: 1px solid var(--color-line);
+  background: #fff;
+}
+
+@utility field {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-line);
+  background: #fff;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+@utility label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+
+@utility eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--color-muted);
+}

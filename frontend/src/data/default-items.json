@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "defaultWear": { "상의": "sample-0", "하의": "sample-1", "신발": "sample-2" },
+  "items": [
+    { "id": "sample-0", "type": "knit", "name": "소프트 라일락 니트", "color": "#a69ab4", "style": "미니멀", "season": "봄·가을" },
+    { "id": "sample-1", "type": "slacks", "name": "크림 와이드 팬츠", "color": "#ded9ca", "style": "미니멀", "season": "사계절" },
+    { "id": "sample-2", "type": "sneakers", "name": "데일리 화이트 스니커즈", "color": "#f3f0e8", "style": "캐주얼", "season": "사계절" },
+    { "id": "sample-3", "type": "jacket", "name": "오트밀 싱글 자켓", "color": "#b7ad98", "style": "댄디", "season": "봄·가을" },
+    { "id": "sample-4", "type": "longtee", "name": "클린 코튼 긴팔 티", "color": "#e8e9e2", "style": "미니멀", "season": "봄·가을" },
+    { "id": "sample-5", "type": "jeans", "name": "워시드 블루 데님", "color": "#7a96aa", "style": "캐주얼", "season": "사계절" },
+    { "id": "sample-6", "type": "tee", "name": "베이직 화이트 티셔츠", "color": "#f5f1e8", "style": "미니멀", "season": "여름" },
+    { "id": "sample-7", "type": "skirt", "name": "차콜 플리츠 스커트", "color": "#666760", "style": "로맨틱", "season": "봄·가을" },
+    { "id": "sample-8", "type": "boots", "name": "클래식 브라운 부츠", "color": "#67534b", "style": "댄디", "season": "겨울" },
+    { "id": "sample-9", "type": "coat", "name": "웜 베이지 코트", "color": "#bca78b", "style": "미니멀", "season": "겨울" },
+    { "id": "sample-10", "type": "tee", "name": "피치 코튼 티셔츠", "color": "#dca99b", "style": "로맨틱", "season": "여름" },
+    { "id": "sample-11", "type": "longtee", "name": "스카이 블루 긴팔 티", "color": "#9cb3c1", "style": "댄디", "season": "봄·가을" },
+    { "id": "sample-12", "type": "knit", "name": "버터 옐로 니트", "color": "#d5c795", "style": "로맨틱", "season": "겨울" },
+    { "id": "sample-13", "type": "slacks", "name": "블랙 스트레이트 팬츠", "color": "#454641", "style": "댄디", "season": "사계절" },
+    { "id": "sample-14", "type": "jacket", "name": "세이지 크롭 자켓", "color": "#929b83", "style": "미니멀", "season": "봄·가을" },
+    { "id": "sample-15", "type": "jeans", "name": "인디고 와이드 데님", "color": "#536978", "style": "Y2K", "season": "사계절" },
+    { "id": "sample-16", "type": "skirt", "name": "모카 롱 스커트", "color": "#9d8874", "style": "미니멀", "season": "봄·가을" },
+    { "id": "sample-17", "type": "sneakers", "name": "빈티지 그린 스니커즈", "color": "#8b967b", "style": "Y2K", "season": "사계절" },
+    { "id": "sample-18", "type": "coat", "name": "차콜 울 코트", "color": "#616560", "style": "댄디", "season": "겨울" },
+    { "id": "sample-19", "type": "tee", "name": "블랙 크롭 티셔츠", "color": "#4d4b4c", "style": "Y2K", "season": "여름" }
+  ]
+}

@@ -1,0 +1,9 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# secrets (backend/.env.example는 올림)
+.env
+.env.local

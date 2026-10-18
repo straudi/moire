@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import defaults from "@/data/default-items.json";
 import * as db from "./db";
-import { getHealth, getWeather, type Health } from "./api";
+import { getHealth, getWeather, locate, type Health, type WeatherQuery } from "./api";
 import { categoryOf } from "./garments";
 import type { Asset, Category, ClosetItem, Garment, HistoryEntry, Outfit, Weather, Wear } from "./types";
 
@@ -16,8 +16,8 @@ const SAMPLES: Garment[] = (defaults.items as Omit<Garment, "templateId" | "bran
   createdAt: 0,
 }));
 export const DEFAULT_WEAR = defaults.defaultWear as Wear;
-// Placeholder until /api/weather answers; source "dummy" means "not chosen by the user", so it is refreshed on start.
-const DEFAULT_WEATHER: Weather = { temp: 18, sky: "맑음", city: "서울", source: "dummy" };
+// Placeholder until /api/weather answers. New users start location-based (D-009); 서울 is the fallback city.
+const DEFAULT_WEATHER: Weather = { temp: 18, sky: "맑음", city: "서울", source: "dummy", mode: "geo" };
 
 export type ServerState = { status: "checking" } | { status: "down" } | ({ status: "up" } & Omit<Health, "status">);
 
@@ -32,6 +32,7 @@ interface Ctx {
   history: HistoryEntry[];
   weather: Weather;
   weatherLoading: boolean;
+  locating: boolean;
   server: ServerState;
   toast: string | null;
   showToast: (t: string) => void;
@@ -45,6 +46,7 @@ interface Ctx {
   logToday: () => Promise<void>;
   setManualWeather: (w: Pick<Weather, "temp" | "sky">) => Promise<void>;
   fetchWeather: (city: string) => Promise<boolean>;
+  locateWeather: () => Promise<boolean>;
 }
 
 const StoreContext = createContext<Ctx | null>(null);
@@ -68,6 +70,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [weather, setWeather] = useState<Weather>(DEFAULT_WEATHER);
   const [weatherLoading, setWeatherLoading] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const weatherRef = useRef(weather);
+  weatherRef.current = weather;
   const [server, setServer] = useState<ServerState>({ status: "checking" });
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -78,21 +83,42 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     toastTimer.current = setTimeout(() => setToast(null), 3200);
   }, []);
 
-  const fetchWeather = useCallback(async (city: string) => {
+  const loadWeather = useCallback(async (q: WeatherQuery, mode: Weather["mode"]) => {
     setWeatherLoading(true);
     try {
-      const w = await getWeather(city);
-      const next: Weather = { temp: w.temp, sky: w.sky, city: w.city, source: w.source };
+      const w = await getWeather(q);
+      const next: Weather = { temp: w.temp, sky: w.sky, city: w.city, source: w.source, mode };
       setWeather(next);
       await db.setMeta("weather", next).catch(() => {});
       return true;
     } catch (e) {
-      showToast(`날씨를 불러오지 못했어요. (${msg(e)}) 직접 입력한 날씨를 사용해요.`);
+      showToast(`날씨를 불러오지 못했어요. (${msg(e)}) 마지막 날씨를 그대로 사용해요.`);
       return false;
     } finally {
       setWeatherLoading(false);
     }
   }, [showToast]);
+
+  const fetchWeather = useCallback((city: string) => loadWeather({ city }, "city"), [loadWeather]);
+
+  // D-009: 현재 위치 → 실패하면 저장된 도시(기본 서울)
+  const locateWeather = useCallback(async () => {
+    setLocating(true);
+    let coords: { lat: number; lon: number } | null = null;
+    let reason = "";
+    try {
+      coords = await locate();
+    } catch (e) {
+      reason = msg(e);
+    } finally {
+      setLocating(false);
+    }
+    if (coords) return loadWeather(coords, "geo");
+    const city = weatherRef.current.mode === "geo" && weatherRef.current.city !== "현재 위치" ? weatherRef.current.city : DEFAULT_WEATHER.city;
+    const ok = await loadWeather({ city }, "city");
+    if (ok) showToast(`${reason}. ${city} 날씨를 보여 줘요. 📍 버튼으로 다시 시도할 수 있어요.`);
+    return false;
+  }, [loadWeather, showToast]);
 
   // 앱 시작: 공통 데이터 → IndexedDB → 렌더링 (기획안 11장)
   useEffect(() => {
@@ -107,8 +133,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setWearState(snap.meta.wear ?? DEFAULT_WEAR);
         setOutfits(snap.outfits.sort((a, b) => b.createdAt - a.createdAt));
         setHistory(snap.history.sort((a, b) => b.id.localeCompare(a.id)));
-        const savedWeather = snap.meta.weather as Weather | undefined;
-        if (savedWeather) setWeather(savedWeather);
+        const saved = snap.meta.weather as (Omit<Weather, "mode"> & { mode?: Weather["mode"] }) | undefined;
+        // Data saved before D-009 has no mode: typed-in values stay manual, everything else becomes location-based.
+        if (saved) setWeather({ ...saved, mode: saved.mode ?? (saved.source === "manual" ? "manual" : "geo") });
       } catch (e) {
         setLoadError(msg(e));
       } finally {
@@ -123,13 +150,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // 직접 입력하지 않았다면 시작할 때 날씨를 불러온다
+  // 시작할 때 날씨를 새로 불러온다: 위치 기반이면 현재 위치, 도시를 골랐으면 그 도시, 직접 입력은 그대로
   const weatherFetched = useRef(false);
   useEffect(() => {
     if (!ready || server.status !== "up" || weatherFetched.current) return;
     weatherFetched.current = true;
-    if (weather.source !== "manual") fetchWeather(weather.city);
-  }, [ready, server.status, weather.source, weather.city, fetchWeather]);
+    if (weather.mode === "geo") locateWeather();
+    else if (weather.mode === "city") fetchWeather(weather.city);
+  }, [ready, server.status, weather.mode, weather.city, fetchWeather, locateWeather]);
 
   const items = useMemo<ClosetItem[]>(() => {
     const own = new Map(garments.map((g) => [g.id, g]));
@@ -208,14 +236,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [wear]);
 
   const setManualWeather = useCallback(async (w: Pick<Weather, "temp" | "sky">) => {
-    const next: Weather = { ...weather, ...w, source: "manual" };
+    const next: Weather = { ...weather, ...w, source: "manual", mode: "manual" };
     await db.setMeta("weather", next);
     setWeather(next);
   }, [weather]);
 
   const value: Ctx = {
-    ready, loadError, items, byId, assets, wear, outfits, history, weather, weatherLoading, server, toast,
-    showToast, saveItem, deleteItem, wearItem, unwear, setWear, resetWear, saveOutfit, logToday, setManualWeather, fetchWeather,
+    ready, loadError, items, byId, assets, wear, outfits, history, weather, weatherLoading, locating, server, toast,
+    showToast, saveItem, deleteItem, wearItem, unwear, setWear, resetWear, saveOutfit, logToday, setManualWeather, fetchWeather, locateWeather,
   };
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }

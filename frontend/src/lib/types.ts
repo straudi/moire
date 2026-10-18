@@ -74,6 +74,8 @@ export interface Weather {
   sky: Sky;
   city: string;
   source: "manual" | "dummy" | "openweathermap";
+  /** How the location was chosen (D-009): browser location, a picked city, or typed-in values. */
+  mode: "geo" | "city" | "manual";
 }
 
 /** A garment ready for rendering: metadata plus its vector pattern, if any. */

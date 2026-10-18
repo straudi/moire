@@ -98,6 +98,30 @@ def test_weather_openweathermap_korean_city(monkeypatch):
     assert body == {"source": "openweathermap", "city": "서울", "temp": 13, "sky": "비", "precipitation": True}
 
 
+def test_weather_by_coordinates(monkeypatch):  # T-28
+    from app import config
+
+    seen = []
+
+    def fake_get(url, params, timeout):
+        seen.append((url, params))
+        if "reverse" in url:
+            return FakeResponse(200, [{"name": "Haeundae-gu", "local_names": {"ko": "해운대구"}}])
+        return FakeResponse(200, {"weather": [{"main": "Clear"}], "main": {"temp": 19.2}})
+
+    monkeypatch.setattr(config, "USE_OPENWEATHER", True)
+    monkeypatch.setattr(weather.httpx, "get", fake_get)
+    body = client.get("/api/weather", params={"lat": 35.163456, "lon": 129.163789}).json()
+    assert body == {"source": "openweathermap", "city": "해운대구", "temp": 19, "sky": "맑음", "precipitation": False}
+    # Coordinates leave the server rounded to ~1km (D-009).
+    assert all(p["lat"] == 35.16 and p["lon"] == 129.16 for _, p in seen)
+
+
+def test_weather_coordinate_validation():  # T-31
+    assert client.get("/api/weather", params={"lat": 999, "lon": 0}).status_code == 422
+    assert client.get("/api/weather", params={"lat": 35.1, "lon": 129.1}).json()["city"] == "현재 위치"  # dummy
+
+
 def test_weather_unknown_city_and_bad_key(monkeypatch):
     from app import config
 

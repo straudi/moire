@@ -43,8 +43,10 @@
 - 요청: `{"items":[...],"weather":{...},"occasion":"출근"}`
 - 응답: `{"mode","score":0~100,"reasons":[...],"suggestions":[...]}` — 화면은 "AI의 참고 의견"으로 표시
 
-### GET /api/weather?city=서울
-- 처리: OpenWeatherMap Geocoding(`/geo/1.0/direct`)으로 도시 → 위경도, 이어서 Current Weather(`/data/2.5/weather`, metric). 한글 도시명(서울·부산·강남구)과 영문 모두 가능
+### GET /api/weather?lat=35.16&lon=129.16 또는 ?city=서울
+- 우선순위: lat·lon이 둘 다 있으면 좌표, 아니면 city. lat −90~90, lon −180~180 (벗어나면 422). 좌표는 서버에서도 소수 둘째 자리로 줄이고 저장·로그하지 않음 (D-009)
+- 좌표 처리: Reverse Geocoding(`/geo/1.0/reverse`)으로 지역 이름(한국어 우선) → Current Weather
+- 도시 처리: OpenWeatherMap Geocoding(`/geo/1.0/direct`)으로 도시 → 위경도, 이어서 Current Weather(`/data/2.5/weather`, metric). 한글 도시명(서울·부산·강남구)과 영문 모두 가능
 - 응답 200: `{"source":"openweathermap"|"dummy","city":"부산광역시","temp":21,"sky":"맑음|흐림|비|눈","precipitation":bool}` — city는 한국어 이름이 있으면 한국어
 - 실패: 422(도시 빈 값), 404(도시를 찾지 못함), 502(공급자 실패·키 오류·호출 한도)
 

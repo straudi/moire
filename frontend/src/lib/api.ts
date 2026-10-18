@@ -71,10 +71,26 @@ export function postRecommend(body: { weather: { temp: number; sky: Sky }; style
   });
 }
 
-export function getWeather(city: string) {
-  return call<Omit<Weather, "source"> & { source: "openweathermap" | "dummy"; precipitation: boolean }>(
-    `/api/weather?city=${encodeURIComponent(city)}`,
+export type WeatherQuery = { city: string } | { lat: number; lon: number };
+
+export function getWeather(q: WeatherQuery) {
+  // Coordinates are rounded to ~1km before leaving the browser (D-009).
+  const params: Record<string, string> = "city" in q ? { city: q.city } : { lat: q.lat.toFixed(2), lon: q.lon.toFixed(2) };
+  return call<Pick<Weather, "temp" | "sky" | "city"> & { source: "openweathermap" | "dummy"; precipitation: boolean }>(
+    `/api/weather?${new URLSearchParams(params)}`,
     undefined,
     10000,
   );
+}
+
+/** Browser location; rejects with a user-facing message. */
+export function locate(): Promise<{ lat: number; lon: number }> {
+  return new Promise((ok, no) => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return no(new Error("이 브라우저는 위치 확인을 지원하지 않아요"));
+    navigator.geolocation.getCurrentPosition(
+      (p) => ok({ lat: p.coords.latitude, lon: p.coords.longitude }),
+      (e) => no(new Error(e.code === e.PERMISSION_DENIED ? "위치 권한이 없어요" : "위치를 확인하지 못했어요")),
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 10 * 60 * 1000 },
+    );
+  });
 }

@@ -142,11 +142,17 @@ def evaluate(body: EvaluateIn):
 
 
 @app.get("/api/weather")
-def get_weather(city: str = Query("Seoul", max_length=60)):
+def get_weather(
+    city: str = Query("서울", max_length=60),
+    lat: float | None = Query(None, ge=-90, le=90),
+    lon: float | None = Query(None, ge=-180, le=180),
+):
     city = city.strip()
-    if not city:
+    if (lat is None or lon is None) and not city:
         raise HTTPException(422, "도시 이름을 입력해 주세요.")
     try:
+        if lat is not None and lon is not None:
+            return weather.current_at(lat, lon)
         return weather.current(city)
     except weather.CityNotFound as exc:
         raise HTTPException(404, str(exc)) from exc

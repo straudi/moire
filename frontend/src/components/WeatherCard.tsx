@@ -11,7 +11,7 @@ export function weatherAdvice(t: number) {
 }
 
 export default function WeatherCard() {
-  const { weather, weatherLoading, fetchWeather, setManualWeather, server, showToast } = useStore();
+  const { weather, weatherLoading, locating, fetchWeather, locateWeather, setManualWeather, server, showToast } = useStore();
   const [open, setOpen] = useState(false);
   const [city, setCity] = useState(weather.city);
   const [temp, setTemp] = useState(String(weather.temp));
@@ -42,13 +42,30 @@ export default function WeatherCard() {
 
   return (
     <section className="card p-5" aria-label="오늘의 날씨">
-      <div className="flex items-center justify-between text-sm">
+      <div className="flex items-start justify-between gap-3 text-sm">
         <span>
-          오늘의 날씨 <span className="text-muted">· {weather.city} · {SOURCE[weather.source]}</span>
+          오늘의 날씨{" "}
+          <span className="text-muted">
+            · {locating ? "위치 확인 중…" : weather.city} · {weather.mode === "geo" && "현재 위치 · "}
+            {SOURCE[weather.source]}
+          </span>
         </span>
-        <button className="text-xs text-muted underline" onClick={() => { setOpen(!open); setError(null); }} aria-expanded={open}>
-          변경
-        </button>
+        <div className="flex shrink-0 items-center gap-3">
+          {weather.mode !== "geo" && (
+            <button
+              className="text-xs text-moss underline"
+              onClick={async () => {
+                if (await locateWeather()) setOpen(false);
+              }}
+              disabled={locating || weatherLoading || server.status !== "up"}
+            >
+              📍 현재 위치
+            </button>
+          )}
+          <button className="text-xs text-muted underline" onClick={() => { setOpen(!open); setError(null); }} aria-expanded={open}>
+            변경
+          </button>
+        </div>
       </div>
       <div className="mt-3 flex items-center gap-4">
         <span className="text-4xl text-moss" aria-hidden>{ICON[weather.sky]}</span>

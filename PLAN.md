@@ -58,6 +58,13 @@
 
 미실행: T-07, T-08, T-10, T-11, T-12, T-15, T-17, T-18, T-20, T-21(서버 단위 테스트로만), T-23 OOTD, T-25(다른 브라우저), T-27(단위 테스트로만), P-19, 실제 Bedrock·OpenWeatherMap 호출
 
+2026-10-19 날씨 실호출 (backend/.env에 OPENWEATHER_API_KEY 설정)
+- `/health` → `"weather":"openweathermap"`
+- `/api/weather` 서울·부산·대구·인천·제주·강남구·Seoul → 200 실측값 (예: 부산광역시 21°C 비), 없는 도시 → 404
+- 한글 도시명이 처음엔 404 → 원인: Current Weather의 `q=`가 한글을 못 찾음 → 수정: Geocoding API로 위경도를 먼저 구함
+- 화면: 홈 날씨 카드에서 "부산" 불러오기 → "부산광역시 · 실시간 · 21°C · 비" 표시 (T-22 실제 모드 통과)
+- `pytest -q` → 10 passed (테스트는 conftest에서 키를 비워 실호출하지 않음, 지오코딩·404·키 오류는 가짜 응답으로 검사)
+
 ## 구현 인계
 - 승인한 작업 범위: P-10~P-18 (완료), 다음은 P-19·P-20
 - 유지할 동작과 금지할 변경: PRD에 없는 기능 금지, SVG 좌표(D-007)·필드 이름(DATA-MODEL) 변경 금지, 서버에 영구 저장 추가 금지(D-004)
@@ -67,8 +74,8 @@
 
 ## 남은 문제와 다음 행동
 - Bedrock 실호출: 계정·리전에서 호출 가능한 모델 ID 확인 → backend/.env의 BEDROCK_MODEL_ID → T-04를 실제 모드로 재시험 (기획안 1일차 D 담당)
-- 날씨 공급자: OpenWeatherMap 키 발급 시 OPENWEATHER_API_KEY 설정. 기상청은 Later
-- Git: 2026-10-19 로컬 저장소 생성(main 브랜치). 원격(GitHub) 연결·푸시는 미실행
+- 날씨: 2026-10-19 OpenWeatherMap 실호출 확인 (키는 backend/.env, Git 제외). 팀원은 각자 backend/.env에 키를 넣어야 함. 기상청은 Later
+- Git: 2026-10-19 GitHub straudi/moire에 main 푸시, origin/main 추적
 - 배포: Vercel(frontend, NEXT_PUBLIC_API_BASE) + Render/Railway(backend, ALLOWED_ORIGINS) — 미착수
 - Later: /api/evaluate 화면 연결, 옷장 내보내기·가져오기
 - 다음에 할 일: P-19 껐다 켜고 다시 실행 → P-20 TEST-PLAN 전체 시험 (STEP 12)

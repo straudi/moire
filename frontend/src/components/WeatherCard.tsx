@@ -65,7 +65,7 @@ export default function WeatherCard() {
       {open && (
         <div className="mt-4 space-y-3 border-t border-line pt-4">
           <div className="flex gap-2">
-            <input className="field" aria-label="도시 이름 (영문)" placeholder="도시 (예: Seoul)" value={city} onChange={(e) => setCity(e.target.value)} />
+            <input className="field" aria-label="도시 이름" placeholder="도시 (예: 서울, 부산, Tokyo)" value={city} onChange={(e) => setCity(e.target.value)} />
             <button className="btn shrink-0" onClick={applyCity} disabled={weatherLoading || server.status !== "up"}>
               {weatherLoading ? "불러오는 중" : "불러오기"}
             </button>

@@ -7,7 +7,8 @@
 MVP 구현 완료(STEP 11), 전체 시험 진행(STEP 12).
 - 설계 문서 10종 확정 (PRD v1.0 기준)
 - frontend(Next.js)·backend(FastAPI) 동작 확인
-- AI(Amazon Bedrock)·날씨 API는 키가 없으면 **더미 모드**로 동작합니다. 실제 호출은 아직 검증하지 않았습니다 (PLAN 남은 문제 참고).
+- 날씨: OpenWeatherMap 실제 호출 확인 (한글 도시명 지원). `backend/.env`에 키가 없으면 더미 날씨로 동작합니다.
+- AI(Amazon Bedrock): 키가 없어 **더미 모드**로만 확인했습니다. 실제 호출은 아직 검증하지 않았습니다 (PLAN 남은 문제 참고).
 
 ## 프로젝트 문서
 - README.md: 이 프로젝트의 소개와 현재 상태

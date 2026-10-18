@@ -43,9 +43,10 @@
 - 요청: `{"items":[...],"weather":{...},"occasion":"출근"}`
 - 응답: `{"mode","score":0~100,"reasons":[...],"suggestions":[...]}` — 화면은 "AI의 참고 의견"으로 표시
 
-### GET /api/weather?city=Seoul
-- 응답 200: `{"source":"openweathermap"|"dummy","city","temp","sky":"맑음|흐림|비|눈","precipitation":bool}`
-- 실패: 422(도시 빈 값), 502(공급자 실패)
+### GET /api/weather?city=서울
+- 처리: OpenWeatherMap Geocoding(`/geo/1.0/direct`)으로 도시 → 위경도, 이어서 Current Weather(`/data/2.5/weather`, metric). 한글 도시명(서울·부산·강남구)과 영문 모두 가능
+- 응답 200: `{"source":"openweathermap"|"dummy","city":"부산광역시","temp":21,"sky":"맑음|흐림|비|눈","precipitation":bool}` — city는 한국어 이름이 있으면 한국어
+- 실패: 422(도시 빈 값), 404(도시를 찾지 못함), 502(공급자 실패·키 오류·호출 한도)
 
 ## 요청·응답 예시
 ```http

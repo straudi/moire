@@ -148,6 +148,8 @@ def get_weather(city: str = Query("Seoul", max_length=60)):
         raise HTTPException(422, "도시 이름을 입력해 주세요.")
     try:
         return weather.current(city)
+    except weather.CityNotFound as exc:
+        raise HTTPException(404, str(exc)) from exc
     except weather.WeatherError as exc:
         raise HTTPException(502, str(exc)) from exc
 

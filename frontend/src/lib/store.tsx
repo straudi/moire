@@ -17,7 +17,7 @@ const SAMPLES: Garment[] = (defaults.items as Omit<Garment, "templateId" | "bran
 }));
 export const DEFAULT_WEAR = defaults.defaultWear as Wear;
 // Placeholder until /api/weather answers; source "dummy" means "not chosen by the user", so it is refreshed on start.
-const DEFAULT_WEATHER: Weather = { temp: 18, sky: "맑음", city: "Seoul", source: "dummy" };
+const DEFAULT_WEATHER: Weather = { temp: 18, sky: "맑음", city: "서울", source: "dummy" };
 
 export type ServerState = { status: "checking" } | { status: "down" } | ({ status: "up" } & Omit<Health, "status">);
 

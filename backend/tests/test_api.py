@@ -3,7 +3,7 @@ import io
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from app import ai
+from app import ai, weather
 from app.main import app
 
 client = TestClient(app)
@@ -69,5 +69,42 @@ def test_clean_tags_drops_out_of_vocab():
 
 
 def test_weather_dummy_and_empty_city():
-    assert client.get("/api/weather", params={"city": "Seoul"}).json()["source"] in ("dummy", "openweathermap")
+    assert client.get("/api/weather", params={"city": "Seoul"}).json()["source"] == "dummy"
     assert client.get("/api/weather", params={"city": "  "}).status_code == 422
+
+
+class FakeResponse:
+    def __init__(self, status, body):
+        self.status_code, self._body = status, body
+
+    def json(self):
+        return self._body
+
+
+def test_weather_openweathermap_korean_city(monkeypatch):
+    from app import config
+
+    def fake_get(url, params, timeout):
+        assert params["appid"] == "test-key"
+        if "geo" in url:
+            assert params["q"] == "서울"
+            return FakeResponse(200, [{"name": "Seoul", "lat": 37.5, "lon": 127.0, "local_names": {"ko": "서울"}}])
+        return FakeResponse(200, {"weather": [{"main": "Rain"}], "main": {"temp": 12.6}})
+
+    monkeypatch.setattr(config, "USE_OPENWEATHER", True)
+    monkeypatch.setattr(config, "OPENWEATHER_API_KEY", "test-key")
+    monkeypatch.setattr(weather.httpx, "get", fake_get)
+    body = client.get("/api/weather", params={"city": "서울"}).json()
+    assert body == {"source": "openweathermap", "city": "서울", "temp": 13, "sky": "비", "precipitation": True}
+
+
+def test_weather_unknown_city_and_bad_key(monkeypatch):
+    from app import config
+
+    monkeypatch.setattr(config, "USE_OPENWEATHER", True)
+    monkeypatch.setattr(weather.httpx, "get", lambda url, params, timeout: FakeResponse(200, []))
+    assert client.get("/api/weather", params={"city": "없는도시"}).status_code == 404
+    monkeypatch.setattr(weather.httpx, "get", lambda url, params, timeout: FakeResponse(401, {}))
+    res = client.get("/api/weather", params={"city": "Seoul"})
+    assert res.status_code == 502
+    assert "키" in res.json()["detail"]
